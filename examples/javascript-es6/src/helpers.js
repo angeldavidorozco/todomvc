@@ -1,46 +1,37 @@
-export { qs, qsa, $on, $delegate, $parent, remove };
-
 // Get element(s) by CSS selector:
-const qs = (selector, scope) => {
-    return (scope || document).querySelector(selector);
-};
+const qs = (selector, scope = document) => scope.querySelector(selector);
 
-const qsa = (selector, scope) => {
-    return (scope || document).querySelectorAll(selector);
-};
+const qsa = (selector, scope = document) => scope.querySelectorAll(selector);
 
 // addEventListener wrapper:
-const $on = (target, type, callback, useCapture) => {
-    target.addEventListener(type, callback, !!useCapture);
-};
+const $on = (target, type, callback, useCapture) =>
+	target.addEventListener(type, callback, !!useCapture);
 
 // Attach a handler to event for all elements that match the selector,
 // now or in the future, based on a root element
 const $delegate = (target, selector, type, handler) => {
-    // https://developer.mozilla.org/en-US/docs/Web/Events/blur
-    const useCapture = type === "blur" || type === "focus";
-    $on(target, type, dispatchEvent, useCapture);
+	// https://developer.mozilla.org/en-US/docs/Web/Events/blur
+	const useCapture = type === "blur" || type === "focus";
+	$on(target, type, dispatchEvent, useCapture);
 
-    function dispatchEvent(event) {
-        const targetElement = event.target;
-        const potentialElements = qsa(selector, target);
-        const hasMatch = Array.prototype.indexOf.call(potentialElements, targetElement) >= 0;
+	function dispatchEvent(event) {
+		const targetElement = event.target;
+		const potentialElements = qsa(selector, target);
+		const hasMatch = Array.from(potentialElements).includes(targetElement);
 
-        if (hasMatch)
-            handler.call(targetElement, event);
-    }
+		if (hasMatch) handler.call(targetElement, event);
+	}
 };
 
 // Find the element's parent with the given tag name:
 // $parent(qs('a'), 'div');
 const $parent = (element, tagName) => {
-    if (!element.parentNode)
-        return undefined;
+	if (!element.parentNode) return undefined;
 
-    if (element.parentNode.tagName.toLowerCase() === tagName.toLowerCase())
-        return element.parentNode;
+	if (element.parentNode.tagName.toLowerCase() === tagName.toLowerCase())
+		return element.parentNode;
 
-    return $parent(element.parentNode, tagName);
+	return $parent(element.parentNode, tagName);
 };
 
 // removes an element from an array
@@ -48,13 +39,15 @@ const $parent = (element, tagName) => {
 // remove(x, 2)
 // x ~== [1,3]
 const remove = (array, thing) => {
-    const index = array.indexOf(thing);
-    if (index === -1)
-        return array;
+	const index = array.indexOf(thing);
+	if (index === -1) return array;
 
-    return array.splice(index, 1);
+	array.splice(index, 1);
+	return array;
 };
 
 // Allow for looping on nodes by chaining:
 // qsa('.foo').forEach(function () {})
 NodeList.prototype.forEach = Array.prototype.forEach;
+
+export { qs, qsa, $on, $delegate, $parent, remove };
